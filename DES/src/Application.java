@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.math.BigInteger;
-import java.util.BitSet;
 
 public class Application implements ActionListener {
 
@@ -41,21 +39,13 @@ public class Application implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		toEncrypt = textField.getText();
-		if (!isHexNumber(toEncrypt)) {
-			errorLabel.setText("Error: incorrect input data!");
-			return;
-		} else
-			errorLabel.setText("");
-		result.setText(encoder.run(toEncrypt));
-		keyField.setText(encoder.getKey());
-	}
-
-	private static boolean isHexNumber(String word) {
 		try {
-			Long.parseLong(word, 16);
-			return true;
-		} catch (NumberFormatException ex) {
-			return false;
+			result.setText(encoder.run(toEncrypt));
+			keyField.setText(encoder.getKey());
+			errorLabel.setText("");
 		}
+		catch (Exception exception) {
+			errorLabel.setText("Error: incorrect input data!");
+		}	
 	}
 }
