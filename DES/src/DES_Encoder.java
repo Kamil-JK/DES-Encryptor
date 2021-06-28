@@ -1,6 +1,3 @@
-
-
-import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.Random;
 
@@ -56,8 +53,10 @@ public class DES_Encoder {
 					{ 2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11 } } };
 	String keyString;
 
-	public String run(String k, String w) {
-		//Converting to hex, dividing strings greater than 64bits and adding zeros
+	public String run(String w) {
+		// Generating key, converting to hex, dividing strings greater than 64bits and
+		// adding zeros
+		BitSet[] k = key();
 		String result = "";
 		while (w.length() % 16 != 0) {
 			w += "0";
@@ -71,9 +70,8 @@ public class DES_Encoder {
 		return result;
 	}
 
-	private String process(String k, String w) {
+	private String process(BitSet[] key, String w) {
 
-		BitSet[] key = key();
 		BitSet word = stringToBitSet(w);
 
 		// FIRST PERMUTATION
@@ -93,11 +91,8 @@ public class DES_Encoder {
 		// FINAL PERMUTATION
 		word = permutation(word, finalPermutationTable);
 
-		// CONVERT TO HEX STRING														????????????????
-		word = reverse(word, 64);
-		long hex = convertToLong(word);
-		String result = Long.toHexString(hex);
-		return result;
+		// CONVERT TO HEX STRING
+		return bitSetToString(word, 16);
 	}
 
 	private BitSet[] key() {
@@ -135,15 +130,6 @@ public class DES_Encoder {
 			keyBits = permutation(keyBits, keyPermutationTable2);
 
 			result[i] = keyBits;
-		}
-		return result;
-	}
-
-	private BitSet permutation(BitSet number, int[] permutationTable) {
-		BitSet result = new BitSet();
-		for (int i = 0; i < permutationTable.length; i++) {
-			boolean a = number.get(permutationTable[i] - 1);
-			result.set(i, a);
 		}
 		return result;
 	}
@@ -206,6 +192,15 @@ public class DES_Encoder {
 		return result;
 	}
 
+	private BitSet permutation(BitSet number, int[] permutationTable) {
+		BitSet result = new BitSet();
+		for (int i = 0; i < permutationTable.length; i++) {
+			boolean a = number.get(permutationTable[i] - 1);
+			result.set(i, a);
+		}
+		return result;
+	}
+
 	private BitSet reverse(BitSet bits, int size) {
 
 		int R = size - 1;
@@ -237,14 +232,6 @@ public class DES_Encoder {
 		return result;
 	}
 
-	private long convertToLong(BitSet bits) {
-		long value = 0L;
-		for (int i = 0; i < bits.length(); ++i) {
-			value += bits.get(i) ? (1L << i) : 0L;
-		}
-		return value;
-	}
-
 	private BitSet randomKey() {
 		Random rnd = new Random();
 		byte[] randomBytes = new byte[8];
@@ -266,20 +253,20 @@ public class DES_Encoder {
 		}
 		return result;
 	}
-	
+
 	private String bitSetToString(BitSet bits, int length) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < length / 2; i++) {
-            byte b = 0;
-            for (int bit = 0, mask = 0x80; mask >= 0x01; bit++, mask /= 2) {
-                if (bits.get((i * 8) + bit)) {
-                    b |= mask;
-                }
-            }
-            result.append(String.format("%02X", b));
-        }
-        return result.toString().toLowerCase();
-	  }
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < length / 2; i++) {
+			byte b = 0;
+			for (int bit = 0, mask = 0x80; mask >= 0x01; bit++, mask /= 2) {
+				if (bits.get((i * 8) + bit)) {
+					b |= mask;
+				}
+			}
+			result.append(String.format("%02X", b));
+		}
+		return result.toString().toLowerCase();
+	}
 
 	public String getKey() {
 		return keyString;

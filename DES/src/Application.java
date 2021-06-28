@@ -7,7 +7,6 @@ import java.util.BitSet;
 public class Application implements ActionListener {
 
 	private static String toEncrypt;
-	private static String key;
 	private static DES_Encoder encoder = new DES_Encoder();
 	private static JFrame frame = new JFrame();
 	private static JPanel panel = new JPanel();
@@ -42,13 +41,21 @@ public class Application implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		toEncrypt = textField.getText();
-		key = keyField.getText();
-		if (toEncrypt == "") {
+		if (!isHexNumber(toEncrypt)) {
 			errorLabel.setText("Error: incorrect input data!");
 			return;
 		} else
 			errorLabel.setText("");
-		result.setText(encoder.run(key, toEncrypt));
+		result.setText(encoder.run(toEncrypt));
 		keyField.setText(encoder.getKey());
+	}
+
+	private static boolean isHexNumber(String word) {
+		try {
+			Long.parseLong(word, 16);
+			return true;
+		} catch (NumberFormatException ex) {
+			return false;
+		}
 	}
 }
