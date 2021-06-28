@@ -2,6 +2,7 @@
 
 import java.math.BigInteger;
 import java.util.BitSet;
+import java.util.Random;
 
 public class DES_Encoder {
 	int[] initialPermutationTable = { 58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30,
@@ -53,13 +54,10 @@ public class DES_Encoder {
 					{ 1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2 },
 					{ 7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8 },
 					{ 2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11 } } };
+	String keyString;
 
-	public String run(String k, String w) { //converting to hex, dividing strings greater than 64bits and adding zeros
-//		w = toHex(w);
-//		while(w.charAt(0)=='0' && w.charAt(1)=='0') {
-//			w = w.substring(2);
-//		}
-		
+	public String run(String k, String w) {
+		//Converting to hex, dividing strings greater than 64bits and adding zeros
 		String result = "";
 		while (w.length() % 16 != 0) {
 			w += "0";
@@ -75,13 +73,13 @@ public class DES_Encoder {
 
 	private String process(String k, String w) {
 
-		BitSet[] key = key(k);
-		BitSet word = prepareBitSet(w);
+		BitSet[] key = key();
+		BitSet word = stringToBitSet(w);
 
 		// FIRST PERMUTATION
 		word = permutation(word, initialPermutationTable);
 
-		// SPLIT TO 2
+		// SPLIT TO 2 WORDS
 		BitSet L0 = new BitSet();
 		BitSet R0 = new BitSet();
 		for (int i = 0; i < 32; i++) {
@@ -95,22 +93,23 @@ public class DES_Encoder {
 		// FINAL PERMUTATION
 		word = permutation(word, finalPermutationTable);
 
-		// CONVERT TO HEX STRING
+		// CONVERT TO HEX STRING														????????????????
 		word = reverse(word, 64);
 		long hex = convertToLong(word);
 		String result = Long.toHexString(hex);
 		return result;
 	}
 
-	private BitSet[] key(String k) {
+	private BitSet[] key() {
 
 		BitSet[] result = new BitSet[16];
-		BitSet keyBits = prepareBitSet(k);
+		BitSet keyBits = randomKey();
+		keyString = bitSetToString(keyBits, 16);
 
 		// FIRST PERMUTATION
 		keyBits = permutation(keyBits, keyPermutationTable1);
 
-		// SPLIT TO 2
+		// SPLIT TO 2 WORDS
 		BitSet Ci = new BitSet();
 		BitSet Di = new BitSet();
 		for (int i = 0; i < 28; i++) {
@@ -140,22 +139,7 @@ public class DES_Encoder {
 		return result;
 	}
 
-	private BitSet prepareBitSet(String str) {
-		String str1 = str.substring(0, 8);
-		String str2 = str.substring(8, 16);
-		BitSet s1 = BitSet.valueOf(new long[] { Long.valueOf(str1, 16) });
-		BitSet s2 = BitSet.valueOf(new long[] { Long.valueOf(str2, 16) });
-		s1 = reverse(s1, 32);
-		s2 = reverse(s2, 32);
-		BitSet result = new BitSet();
-		for (int i = 0; i < 32; i++) {
-			result.set(i, s1.get(i));
-			result.set(i + 32, s2.get(i));
-		}
-		return result;
-	}
-
-	private BitSet permutation(BitSet number, int[] permutationTable) { // to jest dobrze na 100%
+	private BitSet permutation(BitSet number, int[] permutationTable) {
 		BitSet result = new BitSet();
 		for (int i = 0; i < permutationTable.length; i++) {
 			boolean a = number.get(permutationTable[i] - 1);
@@ -261,8 +245,43 @@ public class DES_Encoder {
 		return value;
 	}
 
-	private String toHex(String arg) {
-		return String.format("%040x", new BigInteger(1, arg.getBytes(/* YOUR_CHARSET? */)));
+	private BitSet randomKey() {
+		Random rnd = new Random();
+		byte[] randomBytes = new byte[8];
+		rnd.nextBytes(randomBytes);
+		return BitSet.valueOf(randomBytes);
 	}
 
+	private BitSet stringToBitSet(String str) {
+		String str1 = str.substring(0, 8);
+		String str2 = str.substring(8, 16);
+		BitSet s1 = BitSet.valueOf(new long[] { Long.valueOf(str1, 16) });
+		BitSet s2 = BitSet.valueOf(new long[] { Long.valueOf(str2, 16) });
+		s1 = reverse(s1, 32);
+		s2 = reverse(s2, 32);
+		BitSet result = new BitSet();
+		for (int i = 0; i < 32; i++) {
+			result.set(i, s1.get(i));
+			result.set(i + 32, s2.get(i));
+		}
+		return result;
+	}
+	
+	private String bitSetToString(BitSet bits, int length) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < length / 2; i++) {
+            byte b = 0;
+            for (int bit = 0, mask = 0x80; mask >= 0x01; bit++, mask /= 2) {
+                if (bits.get((i * 8) + bit)) {
+                    b |= mask;
+                }
+            }
+            result.append(String.format("%02X", b));
+        }
+        return result.toString().toLowerCase();
+	  }
+
+	public String getKey() {
+		return keyString;
+	}
 }
